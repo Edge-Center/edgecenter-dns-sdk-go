@@ -14,7 +14,6 @@ clean:
 
 dep:
 	go mod tidy
-	go mod vendor
 
 updatedep:
 	go list -m -u all
