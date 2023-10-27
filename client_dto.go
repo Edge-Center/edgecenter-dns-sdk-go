@@ -1,11 +1,18 @@
 package dnssdk
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
 )
+
+var ErrInvalidMeta = errors.New("invalid meta data")
+
+// Meta dto to read meta
+type Meta map[string]interface{}
 
 // ListZones dto to read list of zones from API
 type ListZones struct {
@@ -34,6 +41,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
+	Meta    Meta             `json:"meta"`
 }
 
 // ResourceRecord dto describe records in RRSet
@@ -91,6 +99,15 @@ func NewFirstNFilter(limit uint, strict bool) RecordFilter {
 	return RecordFilter{
 		Limit:  limit,
 		Type:   "first_n",
+		Strict: strict,
+	}
+}
+
+// NewIsHealthyFilter for RRSet
+func NewIsHealthyFilter(limit uint, strict bool) RecordFilter {
+	return RecordFilter{
+		Limit:  limit,
+		Type:   "is_healthy",
 		Strict: strict,
 	}
 }
@@ -191,6 +208,51 @@ func ContentFromValue(recordType, content string) []interface{} {
 		return nil
 	}
 	return rt.ToContent()
+}
+
+// FailoverMeta
+type FailoverMeta struct {
+	Protocol       string  `json:"protocol"`
+	Port           int     `json:"port"`
+	Frequency      int     `json:"frequency"`
+	Timeout        int     `json:"timeout"`
+	Method         *string `json:"method"`
+	Command        *string `json:"command"`
+	Url            *string `json:"url"`
+	Tls            *bool   `json:"tls"`
+	Regexp         *string `json:"regexp"`
+	HTTPStatusCode *int    `json:"http_status_code"`
+	Host           *string `json:"host"`
+	Verify         *bool   `json:"verify"`
+}
+
+// Failover
+func (a *Meta) Failover() (FailoverMeta, error) {
+	var failoverMeta FailoverMeta
+	failoverValue, ok := (*a)["failover"]
+	if !ok {
+		return FailoverMeta{}, ErrInvalidMeta
+	}
+
+	failoverMeta, ok = failoverValue.(FailoverMeta)
+	if ok {
+		return failoverMeta, nil
+	}
+
+	failover, ok := failoverValue.(map[string]interface{})
+	if !ok {
+		return FailoverMeta{}, ErrInvalidMeta
+	}
+
+	jsonStr, err := json.Marshal(failover)
+	if err != nil {
+		return FailoverMeta{}, ErrInvalidMeta
+	}
+	if err := json.Unmarshal(jsonStr, &failoverMeta); err != nil {
+		return FailoverMeta{}, ErrInvalidMeta
+	}
+
+	return failoverMeta, nil
 }
 
 // ResourceMeta for ResourceRecord
@@ -318,6 +380,21 @@ func (rr *RRSet) AddFilter(filters ...RecordFilter) *RRSet {
 		rr.Filters = make([]RecordFilter, 0)
 	}
 	rr.Filters = append(rr.Filters, filters...)
+	return rr
+}
+
+// AddMeta to ResourceRecord
+func (rr *RRSet) AddMeta(meta ResourceMeta) *RRSet {
+	if meta.validErr != nil {
+		return rr
+	}
+	if meta.name == "" || meta.value == "" {
+		return rr
+	}
+	if rr.Meta == nil {
+		rr.Meta = map[string]interface{}{}
+	}
+	rr.Meta[meta.name] = meta.value
 	return rr
 }
 
