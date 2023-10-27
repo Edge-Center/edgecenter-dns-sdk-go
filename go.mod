@@ -1,4 +1,4 @@
-module github.com/Edge-Center/edgecenter-dns-sdk-go
+module github.com/bioidiad/edgecenter-dns-sdk-go
 
 go 1.19
 
