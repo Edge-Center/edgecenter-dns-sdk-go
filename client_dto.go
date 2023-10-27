@@ -41,7 +41,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
-	Meta    Meta             `json:"meta,omitempty"`
+	Meta    FailoverMeta     `json:"meta,omitempty"`
 }
 
 // ResourceRecord dto describe records in RRSet
@@ -384,17 +384,9 @@ func (rr *RRSet) AddFilter(filters ...RecordFilter) *RRSet {
 }
 
 // AddMeta to ResourceRecord
-func (rr *RRSet) AddMeta(meta ResourceMeta) *RRSet {
-	if meta.validErr != nil {
-		return rr
-	}
-	if meta.name == "" || meta.value == "" {
-		return rr
-	}
-	if rr.Meta == nil {
-		rr.Meta = map[string]interface{}{}
-	}
-	rr.Meta[meta.name] = meta.value
+func (rr *RRSet) AddMeta(meta Meta) *RRSet {
+	fMeta, _ := meta.Failover()
+	rr.Meta = fMeta
 	return rr
 }
 
