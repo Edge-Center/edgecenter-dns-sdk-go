@@ -41,7 +41,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
-	Meta    Meta             `json:"meta"`
+	Meta    Meta             `json:"meta,omitempty"`
 }
 
 // ResourceRecord dto describe records in RRSet
