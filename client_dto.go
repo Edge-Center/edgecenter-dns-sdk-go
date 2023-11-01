@@ -41,7 +41,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
-	Meta    FailoverMeta     `json:"meta,omitempty"`
+	Meta    Meta             `json:"meta,omitempty"`
 }
 
 // ResourceRecord dto describe records in RRSet
@@ -226,6 +226,12 @@ type FailoverMeta struct {
 	Verify         *bool   `json:"verify"`
 }
 
+// HasFailover
+func (a *Meta) HasFailover() bool {
+	_, ok := (*a)["failover"]
+	return ok
+}
+
 // Failover
 func (a *Meta) Failover() (FailoverMeta, error) {
 	var failoverMeta FailoverMeta
@@ -386,7 +392,7 @@ func (rr *RRSet) AddFilter(filters ...RecordFilter) *RRSet {
 // AddMeta to ResourceRecord
 func (rr *RRSet) AddMeta(meta Meta) *RRSet {
 	fMeta, _ := meta.Failover()
-	rr.Meta = fMeta
+	rr.Meta["failover"] = fMeta
 	return rr
 }
 
