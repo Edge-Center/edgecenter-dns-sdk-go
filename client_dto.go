@@ -232,11 +232,11 @@ func (a *Meta) HasFailover() bool {
 }
 
 // AddMeta to ResourceRecord
-func (r *ResourceRecord) AddFailoverMeta(failover map[string]interface{}) *ResourceRecord {
+func (rr *RRSet) AddFailoverMeta(failover map[string]interface{}) *RRSet {
 	for k, v := range failover {
-		r.Meta[k] = v
+		rr.Meta[k] = v
 	}
-	return r
+	return rr
 }
 
 // Failover
