@@ -231,6 +231,14 @@ func (a *Meta) HasFailover() bool {
 	return ok
 }
 
+// AddMeta to ResourceRecord
+func (r *ResourceRecord) AddFailoverMeta(failover map[string]interface{}) *ResourceRecord {
+	for k, v := range failover {
+		r.Meta[k] = v
+	}
+	return r
+}
+
 // Failover
 //func (a *Meta) Failover() (map[string]interface{}, error) {
 //	var failoverMeta = make(map[string]interface{})
