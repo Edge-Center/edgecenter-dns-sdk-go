@@ -1,7 +1,6 @@
 package dnssdk
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -12,7 +11,9 @@ import (
 var ErrInvalidMeta = errors.New("invalid meta data")
 
 // Meta dto to read meta
-type Meta map[string]interface{}
+type Meta struct {
+	Failover FailoverMeta `json:"failover,omitempty"`
+}
 
 // ListZones dto to read list of zones from API
 type ListZones struct {
@@ -227,39 +228,39 @@ type FailoverMeta struct {
 }
 
 // HasFailover
-func (a *Meta) HasFailover() bool {
-	_, ok := (*a)["failover"]
-	return ok
-}
+//func (a *Meta) HasFailover() bool {
+//	_, ok := (*a)["failover"]
+//	return ok
+//}
 
 // Failover
-func (a *Meta) Failover() (FailoverMeta, error) {
-	var failoverMeta FailoverMeta
-	failoverValue, ok := (*a)["failover"]
-	if !ok {
-		return FailoverMeta{}, ErrInvalidMeta
-	}
-
-	failoverMeta, ok = failoverValue.(FailoverMeta)
-	if ok {
-		return failoverMeta, nil
-	}
-
-	failover, ok := failoverValue.(map[string]interface{})
-	if !ok {
-		return FailoverMeta{}, ErrInvalidMeta
-	}
-
-	jsonStr, err := json.Marshal(failover)
-	if err != nil {
-		return FailoverMeta{}, ErrInvalidMeta
-	}
-	if err := json.Unmarshal(jsonStr, &failoverMeta); err != nil {
-		return FailoverMeta{}, ErrInvalidMeta
-	}
-
-	return failoverMeta, nil
-}
+//func (a *Meta) Failover() (FailoverMeta, error) {
+//	var failoverMeta FailoverMeta
+//	failoverValue, ok := (*a)["failover"]
+//	if !ok {
+//		return FailoverMeta{}, ErrInvalidMeta
+//	}
+//
+//	failoverMeta, ok = failoverValue.(FailoverMeta)
+//	if ok {
+//		return failoverMeta, nil
+//	}
+//
+//	failover, ok := failoverValue.(map[string]interface{})
+//	if !ok {
+//		return FailoverMeta{}, ErrInvalidMeta
+//	}
+//
+//	jsonStr, err := json.Marshal(failover)
+//	if err != nil {
+//		return FailoverMeta{}, ErrInvalidMeta
+//	}
+//	if err := json.Unmarshal(jsonStr, &failoverMeta); err != nil {
+//		return FailoverMeta{}, ErrInvalidMeta
+//	}
+//
+//	return failoverMeta, nil
+//}
 
 // ResourceMeta for ResourceRecord
 type ResourceMeta struct {
@@ -390,11 +391,11 @@ func (rr *RRSet) AddFilter(filters ...RecordFilter) *RRSet {
 }
 
 // AddMeta to ResourceRecord
-func (rr *RRSet) AddMeta(meta Meta) *RRSet {
-	fMeta, _ := meta.Failover()
-	rr.Meta["failover"] = fMeta
-	return rr
-}
+//func (rr *RRSet) AddMeta(meta Meta) *RRSet {
+//	fMeta, _ := meta.Failover()
+//	rr.Meta["failover"] = fMeta
+//	return rr
+//}
 
 // ZoneRecord dto describe records in Zone
 type ZoneRecord struct {
