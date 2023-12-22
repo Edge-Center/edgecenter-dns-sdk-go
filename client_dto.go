@@ -218,7 +218,6 @@ type FailoverMeta struct {
 	Frequency      int    `json:"frequency"`
 	Timeout        int    `json:"timeout"`
 	Method         string `json:"method"`
-	Command        string `json:"command"`
 	Url            string `json:"url"`
 	Tls            bool   `json:"tls"`
 	Regexp         string `json:"regexp"`
