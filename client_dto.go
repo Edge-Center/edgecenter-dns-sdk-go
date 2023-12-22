@@ -12,7 +12,7 @@ var ErrInvalidMeta = errors.New("invalid meta data")
 
 // Meta dto to read meta
 type Meta struct {
-	Failover FailoverMeta `json:"failover,omitempty"`
+	Failover *FailoverMeta `json:"failover,omitempty"`
 }
 
 // ListZones dto to read list of zones from API
@@ -42,7 +42,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
-	Meta    Meta             `json:"meta,omitempty"`
+	Meta    *Meta            `json:"meta,omitempty"`
 }
 
 // ResourceRecord dto describe records in RRSet
