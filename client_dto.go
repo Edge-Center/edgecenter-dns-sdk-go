@@ -226,41 +226,6 @@ type FailoverMeta struct {
 	Verify         bool   `json:"verify"`
 }
 
-// HasFailover
-//func (a *Meta) HasFailover() bool {
-//	_, ok := (*a)["failover"]
-//	return ok
-//}
-
-// Failover
-//func (a *Meta) Failover() (FailoverMeta, error) {
-//	var failoverMeta FailoverMeta
-//	failoverValue, ok := (*a)["failover"]
-//	if !ok {
-//		return FailoverMeta{}, ErrInvalidMeta
-//	}
-//
-//	failoverMeta, ok = failoverValue.(FailoverMeta)
-//	if ok {
-//		return failoverMeta, nil
-//	}
-//
-//	failover, ok := failoverValue.(map[string]interface{})
-//	if !ok {
-//		return FailoverMeta{}, ErrInvalidMeta
-//	}
-//
-//	jsonStr, err := json.Marshal(failover)
-//	if err != nil {
-//		return FailoverMeta{}, ErrInvalidMeta
-//	}
-//	if err := json.Unmarshal(jsonStr, &failoverMeta); err != nil {
-//		return FailoverMeta{}, ErrInvalidMeta
-//	}
-//
-//	return failoverMeta, nil
-//}
-
 // ResourceMeta for ResourceRecord
 type ResourceMeta struct {
 	name     string
