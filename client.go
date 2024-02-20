@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://api.edgecenter.online/dns"
+	defaultBaseURL = "https://api.edgecenter.ru/dns"
 	tokenHeader    = "APIKey"
 	defaultTimeOut = 10 * time.Second
 )
