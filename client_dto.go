@@ -1,14 +1,11 @@
 package dnssdk
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
 )
-
-var ErrInvalidMeta = errors.New("invalid meta data")
 
 // Meta dto to read meta
 type Meta struct {
