@@ -354,13 +354,6 @@ func (rr *RRSet) AddFilter(filters ...RecordFilter) *RRSet {
 	return rr
 }
 
-// AddMeta to ResourceRecord
-//func (rr *RRSet) AddMeta(meta Meta) *RRSet {
-//	fMeta, _ := meta.Failover()
-//	rr.Meta["failover"] = fMeta
-//	return rr
-//}
-
 // ZoneRecord dto describe records in Zone
 type ZoneRecord struct {
 	Name         string   `json:"name"`
