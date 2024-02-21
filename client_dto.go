@@ -9,7 +9,7 @@ import (
 
 // Meta dto to read meta
 type Meta struct {
-	Failover *FailoverMeta `json:"failover"`
+	Failover *FailoverMeta `json:"failover,omitempty"`
 }
 
 // ListZones dto to read list of zones from API
@@ -39,7 +39,7 @@ type RRSet struct {
 	TTL     int              `json:"ttl"`
 	Records []ResourceRecord `json:"resource_records"`
 	Filters []RecordFilter   `json:"filters"`
-	Meta    *Meta            `json:"meta"`
+	Meta    *Meta            `json:"meta,omitempty"`
 }
 
 // ResourceRecord dto describe records in RRSet
@@ -210,17 +210,17 @@ func ContentFromValue(recordType, content string) []interface{} {
 
 // FailoverMeta
 type FailoverMeta struct {
-	Protocol       string  `json:"protocol"`
-	Port           int     `json:"port"`
-	Frequency      int     `json:"frequency"`
-	Timeout        int     `json:"timeout"`
-	Method         *string `json:"method"`
-	Url            *string `json:"url"`
-	Tls            *bool   `json:"tls"`
-	Regexp         *string `json:"regexp"`
-	HTTPStatusCode *int    `json:"http_status_code"`
-	Host           *string `json:"host"`
-	Verify         *bool   `json:"verify"`
+	Protocol       string `json:"protocol"`
+	Port           int    `json:"port"`
+	Frequency      int    `json:"frequency"`
+	Timeout        int    `json:"timeout"`
+	Method         string `json:"method,omitempty"`
+	Url            string `json:"url,omitempty"`
+	Tls            bool   `json:"tls,omitempty"`
+	Regexp         string `json:"regexp,omitempty"`
+	HTTPStatusCode int    `json:"http_status_code,omitempty"`
+	Host           string `json:"host,omitempty"`
+	Verify         bool   `json:"verify,omitempty"`
 }
 
 // ResourceMeta for ResourceRecord
