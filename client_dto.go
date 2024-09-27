@@ -60,7 +60,7 @@ func (r ResourceRecord) ContentToString() string {
 
 // RecordFilter describe Filters in RRSet
 type RecordFilter struct {
-	Limit  uint   `json:"limit"`
+	Limit  uint   `json:"limit,omitempty"`
 	Type   string `json:"type"`
 	Strict bool   `json:"strict"`
 }
