@@ -1,13 +1,15 @@
 package dnssdk
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path"
 	"strings"
@@ -316,6 +318,11 @@ func (c *Client) do(ctx context.Context, method, uri string, bodyParams interfac
 		req.Header.Set("User-Agent", c.UserAgent)
 	}
 
+	if c.Debug {
+		reqDump, _ := httputil.DumpRequestOut(req, true)
+		log.Printf("[DEBUG] Request:\n%s", string(reqDump))
+	}
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("send request: %w", err)
@@ -324,7 +331,7 @@ func (c *Client) do(ctx context.Context, method, uri string, bodyParams interfac
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= http.StatusMultipleChoices {
-		all, _ := ioutil.ReadAll(resp.Body)
+		all, _ := io.ReadAll(resp.Body)
 		e := APIError{
 			StatusCode: resp.StatusCode,
 		}
@@ -339,6 +346,123 @@ func (c *Client) do(ctx context.Context, method, uri string, bodyParams interfac
 		return nil
 	}
 
+	if c.Debug {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
+
+		// restore Body for decoder
+		resp.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+	}
 	// nolint: wrapcheck
 	return json.NewDecoder(resp.Body).Decode(dest)
+}
+
+// CreateSecondaryZone creates secondary zone
+// https://apidocs.edgecenter.ru/dns#tag/Secondary/operation/CreateSecondaryZone
+func (c *Client) CreateSecondaryZone(ctx context.Context, req CreateSecondaryZoneRequest) (SecondaryZone, error) {
+	fmt.Println("create secondary zone")
+	name := strings.Trim(req.Name, ".")
+	var result SecondaryZone
+
+	body := make(map[string]interface{})
+	if req.Key != "" {
+		body["key"] = req.Key
+	}
+	if req.Master != "" {
+		body["master"] = req.Master
+	}
+	if req.TSIGName != "" {
+		body["name"] = req.TSIGName
+	}
+
+	// https://api.edgecenter.online/dns/v2/secondary-zones/{zoneName}
+	uri := path.Join("/v2/secondary-zones", name)
+	err := c.do(ctx, http.MethodPost, uri, body, &result)
+	if err != nil {
+		return SecondaryZone{}, fmt.Errorf("create secondary zone %s: %w", name, err)
+	}
+
+	return result, nil
+}
+
+// GetSecondaryZone returns secondary zone
+// https://apidocs.edgecenter.ru/dns#tag/Secondary/operation/getSecondaryZone
+func (c *Client) GetSecondaryZone(ctx context.Context, name string) (SecondaryZone, error) {
+	name = strings.Trim(name, ".")
+
+	//todo: why dns-api returns extra "secondary_zone" level?
+	var response struct {
+		SecondaryZone SecondaryZone `json:"secondary_zone"`
+	}
+
+	uri := path.Join("/v2/secondary-zones", name)
+	err := c.do(ctx, http.MethodGet, uri, nil, &response)
+	if err != nil {
+		return SecondaryZone{}, fmt.Errorf("get secondary zone %s: %w", name, err)
+	}
+
+	return response.SecondaryZone, nil
+}
+
+// UpdateSecondaryZone updates secondary zone
+// https://apidocs.edgecenter.ru/dns#tag/Secondary/operation/UpdateSecondaryZone
+func (c *Client) UpdateSecondaryZone(ctx context.Context, name string, req UpdateSecondaryZoneRequest) (SecondaryZone, error) {
+	name = strings.Trim(name, ".")
+	var result SecondaryZone
+
+	body := make(map[string]interface{})
+	if req.Key != "" {
+		body["key"] = req.Key
+	}
+	if req.Master != "" {
+		body["master"] = req.Master
+	}
+	if req.Name != "" {
+		body["name"] = req.Name
+	}
+
+	uri := path.Join("/v2/secondary-zones", name)
+	err := c.do(ctx, http.MethodPut, uri, body, &result)
+	if err != nil {
+		return SecondaryZone{}, fmt.Errorf("update secondary zone %s: %w", name, err)
+	}
+
+	return result, nil
+}
+
+// DeleteSecondaryZone deletes secondary zone
+// https://apidocs.edgecenter.ru/dns#tag/Secondary/operation/DeleteSecondaryZoneByName
+func (c *Client) DeleteSecondaryZone(ctx context.Context, name string) error {
+	name = strings.Trim(name, ".")
+
+	uri := path.Join("/v2/secondary-zones", name)
+	err := c.do(ctx, http.MethodDelete, uri, nil, nil)
+	if err != nil {
+		return fmt.Errorf("delete secondary zone %s: %w", name, err)
+	}
+
+	return nil
+}
+
+// ListSecondaryZones returns filtered secondary zones
+// https://apidocs.edgecenter.ru/dns#tag/Secondary/operation/SecondaryZones
+func (c *Client) ListSecondaryZones(ctx context.Context, filter SecondaryZonesFilter) ([]SecondaryZone, error) {
+	var result ListSecondaryZonesResponse
+
+	uri := "/v2/secondary-zones"
+	if query := filter.query(); query != "" {
+		uri = uri + "?" + query
+	}
+
+	err := c.do(ctx, http.MethodGet, uri, nil, &result)
+	if err != nil {
+		return nil, fmt.Errorf("list secondary zones: %w", err)
+	}
+
+	return result.Zones, nil
+}
+
+// SecondaryZones returns all secondary zones
+func (c *Client) SecondaryZones(ctx context.Context) ([]SecondaryZone, error) {
+	return c.ListSecondaryZones(ctx, SecondaryZonesFilter{})
 }
