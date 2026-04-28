@@ -3,8 +3,10 @@ package dnssdk
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Meta dto to read meta
@@ -368,4 +370,111 @@ type APIError struct {
 // Error implementation
 func (a APIError) Error() string {
 	return fmt.Sprintf("%d: %s", a.StatusCode, a.Message)
+}
+
+// SECONDARY ZONE
+
+type Timestamp int64 // dns-api returns timestamp as uint64
+
+func (t Timestamp) Time() time.Time {
+	return time.Unix(0, int64(t))
+}
+
+type SecondaryZone struct {
+	ID        uint64       `json:"id,omitempty"`
+	Name      string       `json:"name"`
+	TSIG      *TsigOptions `json:"tsig,omitempty"`
+	UpdatedAt Timestamp    `json:"updated_at,omitempty"`
+}
+
+type TsigOptions struct {
+	Key    string `json:"key,omitempty"`
+	Master string `json:"master,omitempty"`
+	Name   string `json:"name,omitempty"`
+}
+
+type CreateSecondaryZoneRequest struct {
+	Name     string `json:"-"`
+	Key      string `json:"key,omitempty"`
+	Master   string `json:"master,omitempty"`
+	TSIGName string `json:"name,omitempty"`
+}
+
+type UpdateSecondaryZoneRequest struct {
+	Key    string `json:"key,omitempty"`
+	Master string `json:"master,omitempty"`
+	Name   string `json:"name,omitempty"`
+}
+
+type SecondaryZonesFilter struct {
+	Offset uint64
+	Limit  uint64
+	Name   string
+}
+
+type ListSecondaryZonesResponse struct {
+	Zones []SecondaryZone `json:"zones"`
+}
+
+func (szf SecondaryZonesFilter) query() string {
+	params := url.Values{}
+
+	if szf.Offset > 0 {
+		params.Set("offset", strconv.FormatUint(szf.Offset, 10))
+	}
+	if szf.Limit > 0 {
+		params.Set("limit", strconv.FormatUint(szf.Limit, 10))
+	}
+	if szf.Name != "" {
+		params.Set("name", szf.Name)
+	}
+
+	return params.Encode()
+}
+
+func NewCreateSecondaryZoneRequest(zoneName, master string) CreateSecondaryZoneRequest {
+	return CreateSecondaryZoneRequest{
+		Name:   zoneName,
+		Master: master,
+	}
+}
+
+func (r CreateSecondaryZoneRequest) WithTSIGKey(key, name string) CreateSecondaryZoneRequest {
+	r.Key = key
+	r.TSIGName = name
+	return r
+}
+
+func NewUpdateSecondaryZoneRequest() UpdateSecondaryZoneRequest {
+	return UpdateSecondaryZoneRequest{}
+}
+
+func (r UpdateSecondaryZoneRequest) WithMaster(master string) UpdateSecondaryZoneRequest {
+	r.Master = master
+	return r
+}
+
+func (r UpdateSecondaryZoneRequest) WithTSIG(key, name string) UpdateSecondaryZoneRequest {
+	r.Key = key
+	r.Name = name
+	return r
+}
+
+func NewSecondaryZonesFilter() SecondaryZonesFilter {
+	return SecondaryZonesFilter{}
+}
+
+func (szf SecondaryZonesFilter) WithOffset(offset uint64) SecondaryZonesFilter {
+	szf.Offset = offset
+	return szf
+}
+
+func (szf SecondaryZonesFilter) WithLimit(limit uint64) SecondaryZonesFilter {
+	szf.Limit = limit
+	return szf
+}
+
+func (szf SecondaryZonesFilter) WithName(name string) SecondaryZonesFilter {
+	szf.Name = name
+	return szf
 }
