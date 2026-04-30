@@ -323,6 +323,30 @@ func NewResourceMetaDefault() ResourceMeta {
 	}
 }
 
+// NewResourceMetaRegions for regions meta
+func NewResourceMetaRegions(regions ...string) ResourceMeta {
+	return ResourceMeta{
+		name:  "regions",
+		value: regions,
+	}
+}
+
+// NewResourceMetaBackup for backup meta
+func NewResourceMetaBackup(backup bool) ResourceMeta {
+	return ResourceMeta{
+		name:  "backup",
+		value: backup,
+	}
+}
+
+// NewResourceMetaWeight for weight meta
+func NewResourceMetaWeight(weight int) ResourceMeta {
+	return ResourceMeta{
+		name:  "weight",
+		value: weight,
+	}
+}
+
 // SetContent to ResourceRecord
 func (r *ResourceRecord) SetContent(recordType, val string) *ResourceRecord {
 	r.Content = ContentFromValue(recordType, val)
@@ -334,7 +358,7 @@ func (r *ResourceRecord) AddMeta(meta ResourceMeta) *ResourceRecord {
 	if meta.validErr != nil {
 		return r
 	}
-	if meta.name == "" || meta.value == "" {
+	if meta.name == "" || meta.value == nil {
 		return r
 	}
 	if r.Meta == nil {

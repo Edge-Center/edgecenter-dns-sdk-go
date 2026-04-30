@@ -1,6 +1,7 @@
 package dnssdk
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -417,6 +418,59 @@ func TestNewResourceMetaDefault(t *testing.T) {
 	}
 }
 
+func TestNewResourceMetaBackup(t *testing.T) {
+	tests := []struct {
+		name string
+		want ResourceMeta
+	}{
+		{
+			name: "ok",
+			want: ResourceMeta{
+				name:     "backup",
+				value:    true,
+				validErr: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewResourceMetaBackup(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewResourceMetaBackup() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewResourceMetaWeight(t *testing.T) {
+	type args struct {
+		weight int
+	}
+	tests := []struct {
+		name string
+		args args
+		want ResourceMeta
+	}{
+		{
+			name: "ok",
+			args: args{
+				weight: 6,
+			},
+			want: ResourceMeta{
+				name:     "weight",
+				value:    6,
+				validErr: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewResourceMetaWeight(tt.args.weight); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewResourceMetaWeight() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestResourceRecords_AddMeta(t *testing.T) {
 	type fields struct {
 		Content []interface{}
@@ -446,6 +500,18 @@ func TestResourceRecords_AddMeta(t *testing.T) {
 				Meta: map[string]interface{}{"a": 1},
 			},
 		},
+		{
+			name: "backup and weight helpers",
+			fields: fields{
+				Meta: nil,
+			},
+			args: args{
+				meta: NewResourceMetaBackup(),
+			},
+			want: ResourceRecord{
+				Meta: map[string]interface{}{"backup": true},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -457,5 +523,115 @@ func TestResourceRecords_AddMeta(t *testing.T) {
 				t.Errorf("AddMeta() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestResourceRecords_AddMetaWeight(t *testing.T) {
+	r := (&ResourceRecord{}).AddMeta(NewResourceMetaWeight(6))
+	want := ResourceRecord{
+		Meta: map[string]interface{}{"weight": 6},
+	}
+	if !reflect.DeepEqual(*r, want) {
+		t.Errorf("AddMeta(NewResourceMetaWeight()) = %v, want %v", r, want)
+	}
+}
+
+func TestResourceRecordMetaJSONMarshal(t *testing.T) {
+	record := (&ResourceRecord{Enabled: true}).
+		AddMeta(NewResourceMetaBackup()).
+		AddMeta(NewResourceMetaWeight(6))
+
+	got, err := json.Marshal(record)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	want := `{"content":null,"meta":{"backup":true,"weight":6},"enabled":true}`
+	if string(got) != want {
+		t.Fatalf("json.Marshal() = %s, want %s", string(got), want)
+	}
+}
+
+func TestResourceRecordMetaJSONUnmarshal(t *testing.T) {
+	raw := []byte(`{"content":["1.5.7.3"],"meta":{"backup":true,"weight":6},"enabled":true}`)
+
+	var got ResourceRecord
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if got.Meta["backup"] != true {
+		t.Fatalf("meta.backup = %v, want true", got.Meta["backup"])
+	}
+	if got.Meta["weight"] != float64(6) {
+		t.Fatalf("meta.weight = %v, want %v", got.Meta["weight"], float64(6))
+	}
+}
+
+func TestNewResourceMetaRegions(t *testing.T) {
+	type args struct {
+		regions []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want ResourceMeta
+	}{
+		{
+			name: "ok",
+			args: args{
+				regions: []string{"ru-spb", "ru-mow"},
+			},
+			want: ResourceMeta{
+				name:     "regions",
+				value:    []string{"ru-spb", "ru-mow"},
+				validErr: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewResourceMetaRegions(tt.args.regions...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewResourceMetaRegions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestResourceRecords_AddMetaRegions(t *testing.T) {
+	r := (&ResourceRecord{}).AddMeta(NewResourceMetaRegions("ru-spb", "ru-mow"))
+	want := ResourceRecord{
+		Meta: map[string]interface{}{"regions": []string{"ru-spb", "ru-mow"}},
+	}
+	if !reflect.DeepEqual(*r, want) {
+		t.Errorf("AddMeta(NewResourceMetaRegions()) = %v, want %v", r, want)
+	}
+}
+
+func TestResourceRecordMetaRegionsJSONMarshal(t *testing.T) {
+	record := (&ResourceRecord{Enabled: true}).
+		AddMeta(NewResourceMetaRegions("ru-spb", "ru-mow"))
+
+	got, err := json.Marshal(record)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	want := `{"content":null,"meta":{"regions":["ru-spb","ru-mow"]},"enabled":true}`
+	if string(got) != want {
+		t.Fatalf("json.Marshal() = %s, want %s", string(got), want)
+	}
+}
+
+func TestResourceRecordMetaRegionsJSONUnmarshal(t *testing.T) {
+	raw := []byte(`{"content":["1.5.7.3"],"meta":{"regions":["ru-spb","ru-mow"]},"enabled":true}`)
+
+	var got ResourceRecord
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if !reflect.DeepEqual(got.Meta["regions"], []interface{}{"ru-spb", "ru-mow"}) {
+		t.Fatalf("meta.regions = %v, want %v", got.Meta["regions"], []interface{}{"ru-spb", "ru-mow"})
 	}
 }
