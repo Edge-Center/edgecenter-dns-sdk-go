@@ -398,20 +398,31 @@ func TestNewResourceMetaContinents(t *testing.T) {
 func TestNewResourceMetaDefault(t *testing.T) {
 	tests := []struct {
 		name string
+		def  bool
 		want ResourceMeta
 	}{
 		{
 			name: "ok",
+			def:  true,
 			want: ResourceMeta{
 				name:     "default",
 				value:    true,
 				validErr: nil,
 			},
 		},
+		{
+			name: "false",
+			def:  false,
+			want: ResourceMeta{
+				name:     "default",
+				value:    false,
+				validErr: nil,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewResourceMetaDefault(); !reflect.DeepEqual(got, tt.want) {
+			if got := NewResourceMetaDefault(tt.def); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewResourceMetaDefault() = %v, want %v", got, tt.want)
 			}
 		})

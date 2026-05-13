@@ -316,10 +316,10 @@ func NewResourceMetaContinents(continents ...string) ResourceMeta {
 }
 
 // NewResourceMetaDefault for default meta
-func NewResourceMetaDefault() ResourceMeta {
+func NewResourceMetaDefault(def bool) ResourceMeta {
 	return ResourceMeta{
 		name:  "default",
-		value: true,
+		value: def,
 	}
 }
 

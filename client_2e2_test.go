@@ -92,7 +92,7 @@ func TestNewClient(t *testing.T) {
 				*(&ResourceRecord{Enabled: true}).
 					SetContent(recType, recVal).
 					AddMeta(NewResourceMetaLatLong("1.1,2.2")).
-					AddMeta(NewResourceMetaDefault()).
+					AddMeta(NewResourceMetaDefault(true)).
 					AddMeta(NewResourceMetaAsn(1)),
 				*(&ResourceRecord{}).
 					SetContent(recType, recVal2).
