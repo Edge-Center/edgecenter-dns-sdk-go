@@ -257,7 +257,6 @@ func WithFilters(filters ...RecordFilter) AddZoneOpt {
 func (c *Client) AddZoneRRSet(ctx context.Context,
 	zone, recordName, recordType string,
 	values []ResourceRecord, ttl int, opts ...AddZoneOpt) error {
-
 	record := RRSet{TTL: ttl, Records: values}
 	for _, op := range opts {
 		op(&record)
