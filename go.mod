@@ -1,6 +1,6 @@
 module github.com/Edge-Center/edgecenter-dns-sdk-go
 
-go 1.19
+go 1.26.0
 
 require (
 	github.com/stretchr/testify v1.7.1
