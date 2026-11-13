@@ -6,7 +6,7 @@ go_bin:=$(shell pwd)/bin
 all: clean tools dep lint
 
 tools:
-	GOBIN=${go_bin} go install -mod=mod github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.9.0
+	GOBIN=${go_bin} go install -mod=mod github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 clean:
 	rm -rf ./bin
